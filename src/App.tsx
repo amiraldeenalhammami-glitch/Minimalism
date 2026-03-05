@@ -1,0 +1,1365 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  Menu, X, ChevronDown, ChevronRight, BookOpen, History, Users, 
+  Home, Box, Cpu, Leaf, Info, ArrowRight, ExternalLink,
+  Award, School, User, Calendar, MapPin, Sun, Moon
+} from 'lucide-react';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell, LineChart, Line, AreaChart, Area,
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Legend
+} from 'recharts';
+
+// --- Utility ---
+const cn = (...inputs: any[]) => inputs.filter(Boolean).join(' ');
+
+// --- Components ---
+
+const SectionTitle = ({ children, subtitle, number, isDarkMode }: { children: React.ReactNode, subtitle?: string, number?: string, isDarkMode?: boolean }) => (
+  <div className="mb-12 text-right" dir="rtl">
+    {number && <span className="text-emerald-500 font-mono text-sm mb-2 block tracking-widest">{number}</span>}
+    <h2 className={cn(
+      "text-4xl md:text-5xl font-light mb-4 leading-tight transition-colors duration-500",
+      isDarkMode ? "text-zinc-100" : "text-zinc-900"
+    )}>
+      {children}
+    </h2>
+    {subtitle && <p className={cn(
+      "text-lg max-w-2xl ml-auto transition-colors duration-500",
+      isDarkMode ? "text-zinc-400" : "text-zinc-600"
+    )}>{subtitle}</p>}
+    <div className="h-px w-24 bg-emerald-500 mt-6 mr-0 ml-auto" />
+  </div>
+);
+
+const InfoCard = ({ title, content, icon: Icon, isDarkMode }: { title: string, content: string, icon: any, isDarkMode?: boolean }) => (
+  <motion.div 
+    whileHover={{ y: -5 }}
+    className={cn(
+      "border p-6 rounded-2xl backdrop-blur-sm transition-all duration-500",
+      isDarkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+    )}
+  >
+    <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4">
+      <Icon className="text-emerald-500 w-6 h-6" />
+    </div>
+    <h3 className={cn(
+      "text-xl font-medium mb-2 transition-colors duration-500",
+      isDarkMode ? "text-zinc-100" : "text-zinc-900"
+    )}>{title}</h3>
+    <p className={cn(
+      "text-sm leading-relaxed transition-colors duration-500",
+      isDarkMode ? "text-zinc-400" : "text-zinc-600"
+    )}>{content}</p>
+  </motion.div>
+);
+
+const ImageWithCaption = ({ src, caption, details, isDarkMode }: { src: string, caption: string, details?: string[], isDarkMode?: boolean }) => {
+  // Convert Google Drive links to direct view links if possible
+  const getDirectLink = (url: string) => {
+    if (url.includes('drive.google.com')) {
+      const id = url.split('/d/')[1]?.split('/')[0] || url.split('id=')[1]?.split('&')[0];
+      return `https://lh3.googleusercontent.com/d/${id}`;
+    }
+    return src;
+  };
+
+  return (
+    <figure className="my-12 group">
+      <div className={cn(
+        "relative overflow-hidden rounded-2xl border transition-all duration-500",
+        isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-zinc-100 border-zinc-200 shadow-sm"
+      )}>
+        <img 
+          src={getDirectLink(src)} 
+          alt={caption}
+          className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
+          referrerPolicy="no-referrer"
+          onError={(e) => {
+            // Fallback if Google Drive link fails
+            (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${caption}/1200/800`;
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      </div>
+      <figcaption className="mt-4 text-right" dir="rtl">
+        <span className="text-emerald-500 font-medium block mb-1">{caption}</span>
+        {details && (
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            {details.map((d, i) => (
+              <div key={i} className={cn(
+                "text-xs border-r pr-2 transition-colors duration-500",
+                isDarkMode ? "text-zinc-500 border-zinc-800" : "text-zinc-400 border-zinc-200"
+              )}>
+                {d}
+              </div>
+            ))}
+          </div>
+        )}
+      </figcaption>
+    </figure>
+  );
+};
+
+// --- Main App ---
+
+export default function App() {
+  const [activeSection, setActiveSection] = useState('hero');
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      return saved ? saved === 'dark' : true;
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const philosophyData = [
+    { name: 'فلسفة الزن', concept: 'الفراغ (Ma)', effect: 'تعزيز التأمل من خلال المساحات المفتوحة' },
+    { name: 'الظاهراتية', concept: 'الحضور المادي', effect: 'التركيز على ملمس المادة وتفاعل الجسد' },
+    { name: 'الأخلاقيات البيئية', concept: 'القصدية', effect: 'تقليل الهدر المادي والاعتماد على الطبيعة' },
+    { name: 'الصدق البنائي', concept: 'الوظيفية الصارمة', effect: 'إظهار الهيكل الإنشائي كجزء من الجمالية' },
+  ];
+
+  const timelineData = [
+    { year: '1913', event: 'البنائية الروسية', desc: 'ماليفيتش وتاتلين - التجريد الهندسي' },
+    { year: '1917', event: 'دي ستايل', desc: 'موندريان - الخطوط والألوان الأساسية' },
+    { year: '1919', event: 'البوهاوس', desc: 'غروبيوس - الشكل يتبع الوظيفة' },
+    { year: '1929', event: 'جناح برشلونة', desc: 'ميس فان دير روه - الأقل هو الأكثر' },
+    { year: '1960', event: 'مينيماليزم نيويورك', desc: 'دونالد جود - الحضور المادي الصرف' },
+    { year: '1989', event: 'كنيسة الضوء', desc: 'تاداو أندو - نحت الضوء بالخرسانة' },
+    { year: '2023', event: 'جناح أولنيك', desc: 'كامبو بايزا - الفراغ الأيزوتروبي' },
+  ];
+
+  const timelineChartData = [
+    { title: 'الثورة الصناعية', desc: 'رفض الزخرفة', year: 1860 },
+    { title: 'البنائية الروسية', desc: 'الصدق الهيكلي', year: 1913 },
+    { title: 'حركة دي ستايل', desc: 'التجريد الشكلي', year: 1917 },
+    { title: 'اليسارية والبوهاوس', desc: 'العقلانية', year: 1919 },
+    { title: 'المينيماليزم النيويوركي', desc: 'التكريس', year: 1966 },
+  ].map(item => ({ ...item, name: `${item.title} (${item.desc})` }));
+
+  const radarData = [
+    { subject: 'دراما الظلال والمادية (Chiaroscuro)', ando: 95, baeza: 20 },
+    { subject: 'غمر الضوء والتجريد (Isotropic)', ando: 30, baeza: 98 },
+    { subject: 'الاحتواء والاندماج التضاريسي', ando: 85, baeza: 40 },
+    { subject: 'اللامادية وانعكاس البياض', ando: 20, baeza: 95 },
+    { subject: 'الصرامة الهندسية (Cube)', ando: 60, baeza: 90 },
+    { subject: 'الارتباط الثقافي الروحاني (Zen)', ando: 90, baeza: 30 },
+  ];
+
+  const donutData = [
+    { name: 'التكامل التكنولوجي والذكاء', value: 25, color: '#3b82f6' },
+    { name: 'الاستدامة والطاقة المتجددة', value: 30, color: '#10b981' },
+    { name: 'المواد المبتكرة (UHPC وغيرها)', value: 15, color: '#f59e0b' },
+    { name: 'الانسيابية الفراغية', value: 15, color: '#8b5cf6' },
+    { name: 'تخصيص الإضاءة', value: 15, color: '#06b6d4' },
+  ];
+
+  return (
+    <div className={cn(
+      "min-h-screen font-sans transition-colors duration-500 selection:bg-emerald-500/30 selection:text-emerald-200",
+      isDarkMode ? "bg-black text-zinc-300" : "bg-zinc-50 text-zinc-800"
+    )}>
+      
+      {/* Navigation */}
+      <nav className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-6 py-4 flex items-center justify-between",
+        isScrolled 
+          ? (isDarkMode ? "bg-black/80 backdrop-blur-md border-b border-zinc-800" : "bg-white/80 backdrop-blur-md border-b border-zinc-200")
+          : "bg-transparent"
+      )}>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-black font-bold">
+            AH
+          </div>
+          <div className="hidden md:block text-right" dir="rtl">
+            <div className={cn("text-xs transition-colors", isDarkMode ? "text-zinc-500" : "text-zinc-400")}>جامعة دمشق</div>
+            <div className={cn("text-sm font-medium transition-colors", isDarkMode ? "text-zinc-100" : "text-zinc-900")}>م. أمير الدين الحمامي</div>
+          </div>
+        </div>
+        
+        <div className="hidden lg:flex items-center gap-8 text-sm font-medium" dir="rtl">
+          {['الرئيسية', 'المقدمة', 'التاريخ', 'الرواد', 'كوشينو', 'أولنيك', 'المستقبل', 'الرؤية'].map((item, i) => (
+            <a key={i} href={`#section-${i}`} className={cn(
+              "transition-colors",
+              isDarkMode ? "hover:text-emerald-500 text-zinc-300" : "hover:text-emerald-600 text-zinc-600"
+            )}>
+              {item}
+            </a>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={cn(
+              "p-2 rounded-lg transition-all duration-300 flex items-center justify-center",
+              isDarkMode ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-zinc-100 text-zinc-500"
+            )}
+            title={isDarkMode ? "الوضع النهاري" : "الوضع الليلي"}
+          >
+            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
+          <button className={cn(
+            "p-2 rounded-lg transition-colors",
+            isDarkMode ? "hover:bg-zinc-800 text-zinc-300" : "hover:bg-zinc-100 text-zinc-600"
+          )}>
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section id="section-0" className="relative h-screen flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className={cn(
+            "absolute inset-0 z-10 transition-colors duration-500",
+            isDarkMode ? "bg-gradient-to-b from-black/20 via-black/60 to-black" : "bg-gradient-to-b from-white/20 via-white/60 to-white"
+          )} />
+          <img 
+            src="https://lh3.googleusercontent.com/d/1O1y3q0Q-7OOLDgideRwYYED-UBdaZZPo" 
+            className={cn(
+              "w-full h-full object-cover scale-105 animate-pulse-slow transition-opacity duration-500",
+              isDarkMode ? "opacity-50" : "opacity-30"
+            )}
+            alt="Minimalist Architecture Background"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+        
+        <div className="relative z-20 container mx-auto px-6 text-center" dir="rtl">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className={cn(
+              "inline-block px-4 py-1 border rounded-full text-sm mb-6 transition-all duration-500",
+              isDarkMode ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-emerald-500/5 text-emerald-600 border-emerald-500/30"
+            )}>
+              الدراسات العليا - الجذع المشترك
+            </span>
+            <h1 className={cn(
+              "text-5xl md:text-7xl lg:text-8xl font-light mb-8 leading-tight tracking-tight transition-colors duration-500",
+              isDarkMode ? "text-white" : "text-zinc-900"
+            )}>
+              الفراغ <span className="text-emerald-500 italic">الجوهري</span>
+            </h1>
+            <p className={cn(
+              "text-xl md:text-2xl max-w-4xl mx-auto mb-12 font-light leading-relaxed transition-colors duration-500",
+              isDarkMode ? "text-zinc-400" : "text-zinc-600"
+            )}>
+              دراسة تحليلية نقدية لتيار الحدنوية (المينيماليزم) من الجذور الفلسفية إلى آفاق التقنية المستدامة في القرن الحادي والعشرين
+            </p>
+            
+            <div className={cn(
+              "flex flex-wrap justify-center gap-12 text-right border-t pt-12 transition-colors duration-500",
+              isDarkMode ? "border-zinc-800" : "border-zinc-200"
+            )}>
+              <div>
+                <div className="text-zinc-500 text-xs uppercase tracking-widest mb-1">الباحث</div>
+                <div className={cn("font-medium transition-colors", isDarkMode ? "text-zinc-100" : "text-zinc-900")}>م. أمير الدين الحمامي</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 text-xs uppercase tracking-widest mb-1">المشرف</div>
+                <div className={cn("font-medium transition-colors", isDarkMode ? "text-zinc-100" : "text-zinc-900")}>د. رهف كركوكي</div>
+              </div>
+              <div>
+                <div className="text-zinc-500 text-xs uppercase tracking-widest mb-1">المؤسسة</div>
+                <div className={cn("font-medium transition-colors", isDarkMode ? "text-zinc-100" : "text-zinc-900")}>جامعة دمشق - كلية الهندسة المعمارية</div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        <motion.div 
+          animate={{ y: [0, 10, 0] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className={cn("absolute bottom-10 left-1/2 -translate-x-1/2 transition-colors", isDarkMode ? "text-zinc-500" : "text-zinc-400")}
+        >
+          <ChevronDown className="w-8 h-8" />
+        </motion.div>
+      </section>
+
+      {/* Abstract & Intro */}
+      <section id="section-1" className="py-24 container mx-auto px-6">
+        <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="order-2 lg:order-1" dir="rtl">
+            <SectionTitle number="01" subtitle="فلسفة الاختزال والبحث عن الحقيقة المعمارية" isDarkMode={isDarkMode}>المقدمة</SectionTitle>
+            <div className={cn(
+              "prose max-w-none text-lg leading-relaxed transition-colors duration-500",
+              isDarkMode ? "prose-invert prose-emerald text-zinc-400" : "prose-slate text-zinc-600"
+            )}>
+              <p className="mb-6">
+                يشهد النتاج المعماري المعاصر حالة من التشتت البصري والتعقيد الشكلي، مما ولد حاجة ملحة للعودة إلى الأصول، وهنا يبرز تيار الحدنوية ليس كمجرد "أسلوب" جمالي، بل كموقف فكري وأخلاقي يسعى لتنقية المشهد المعماري من الشوائب الفائضة.
+              </p>
+              <p className="mb-6">
+                إن الحدنوية في جوهرها هي البحث عن <span className={cn("font-medium transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>"الحد الأدنى غير القابل للاختزال"</span> (Irreducible Minimum)، حيث تصبح البساطة أداة للكشف عن القيم الجوهرية للفراغ والضوء والمادة.
+              </p>
+              <div className={cn(
+                "border-r-4 border-emerald-500 p-6 my-8 italic transition-colors duration-500",
+                isDarkMode ? "bg-zinc-900/50 text-zinc-300" : "bg-zinc-100 text-zinc-700"
+              )}>
+                "تنبثق الجذور الفلسفية لهذا التيار من تقاطع فريد بين الفكر الشرقي والمنطق الغربي؛ فمن جهة، تعتمد الحدنوية على مفهوم 'الزن' الياباني الذي يقدس 'الما' (Ma) أو الفراغ بوصفه حيزاً للاحتمالات وليس مجرد فراغ سلبي."
+              </div>
+            </div>
+          </div>
+          
+          <div className="order-1 lg:order-2">
+            <div className={cn(
+              "p-8 rounded-3xl border transition-all duration-500",
+              isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+            )}>
+              <h3 className={cn("text-2xl font-light mb-6 text-right transition-colors", isDarkMode ? "text-white" : "text-zinc-900")} dir="rtl">ملخص البحث</h3>
+              <p className={cn("text-right leading-relaxed mb-8 transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")} dir="rtl">
+                تستهدف هذه الدراسة تقديم تحليل شمولي لتيار "الحدنوية" (Minimalism) كفلسفة معمارية ومنهج تصميمي يسعى لاستخلاص الجوهر من خلال الاختزال المدروس. يتتبع البحث الأصول التاريخية للتيار بدءاً من الحركات الطليعية في مطلع القرن العشرين، مروراً برواده المؤسسين، وصولاً إلى تطبيقاته المعاصرة والمستقبلية.
+              </p>
+              <div className="space-y-4">
+                <div className={cn("flex items-center justify-between text-sm border-b pb-2 transition-colors", isDarkMode ? "border-zinc-800" : "border-zinc-100")}>
+                  <span className="text-emerald-500">الاستدامة والتقنية</span>
+                  <span className="text-zinc-500">التركيز الرئيسي</span>
+                </div>
+                <div className={cn("flex items-center justify-between text-sm border-b pb-2 transition-colors", isDarkMode ? "border-zinc-800" : "border-zinc-100")}>
+                  <span className="text-emerald-500">منزل كوشينو / جناح أولنيك</span>
+                  <span className="text-zinc-500">نماذج تطبيقية</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-emerald-500">الحدنوية الدافئة</span>
+                  <span className="text-zinc-500">الرؤية المستقبلية</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Philosophy Table/Infographic */}
+        <div className="mt-24" dir="rtl">
+          <h3 className={cn("text-2xl font-light mb-12 text-center transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>أبعاد الفكر الحدنوي</h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {philosophyData.map((item, i) => (
+              <div key={i} className={cn(
+                "group p-8 border rounded-2xl transition-all duration-500 hover:border-emerald-500/50",
+                isDarkMode ? "bg-zinc-900/30 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+              )}>
+                <div className="text-emerald-500 font-mono text-sm mb-4">0{i+1}</div>
+                <h4 className={cn("text-xl font-medium mb-2 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>{item.name}</h4>
+                <div className="text-zinc-500 text-xs mb-4 uppercase tracking-widest">{item.concept}</div>
+                <p className={cn("text-sm leading-relaxed transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>{item.effect}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Philosophy Table */}
+        <div className={cn(
+          "mt-16 border rounded-3xl overflow-hidden transition-all duration-500",
+          isDarkMode ? "bg-zinc-900/20 border-zinc-800/50" : "bg-white border-zinc-200 shadow-sm"
+        )} dir="rtl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-right">
+              <thead>
+                <tr className={cn("border-b transition-colors", isDarkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-zinc-50 border-zinc-200")}>
+                  <th className="py-5 px-8 text-emerald-500 font-medium text-sm uppercase tracking-wider">البعد الفلسفي</th>
+                  <th className="py-5 px-8 text-emerald-500 font-medium text-sm uppercase tracking-wider">المفهوم المركزي</th>
+                  <th className="py-5 px-8 text-emerald-500 font-medium text-sm uppercase tracking-wider">الأثر المعماري المتوقع</th>
+                  <th className="py-5 px-8 text-emerald-500 font-medium text-sm uppercase tracking-wider text-center">المصدر</th>
+                </tr>
+              </thead>
+              <tbody className={cn("divide-y transition-colors", isDarkMode ? "divide-zinc-800/50" : "divide-zinc-100")}>
+                {[
+                  { dim: 'فلسفة الزن', concept: 'الفراغ (Ma)', impact: 'تعزيز التأمل من خلال المساحات المفتوحة', source: '1' },
+                  { dim: 'الظاهراتية', concept: 'الحضور المادي (Specific Object)', impact: 'التركيز على ملمس المادة وتفاعل الجسد مع الفراغ', source: '11' },
+                  { dim: 'الأخلاقيات البيئية', concept: 'القصدية (Intentionality)', impact: 'تقليل الهدر المادي والاعتماد على المواد الطبيعية', source: '1' },
+                  { dim: 'الصدق البنائي', concept: 'الوظيفية الصارمة', impact: 'إظهار الهيكل الإنشائي كجزء من الجمالية', source: '6' },
+                ].map((row, i) => (
+                  <motion.tr 
+                    key={i} 
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    viewport={{ once: true }}
+                    className={cn("transition-colors group", isDarkMode ? "hover:bg-emerald-500/5" : "hover:bg-emerald-50/50")}
+                  >
+                    <td className={cn("py-6 px-8 font-medium border-r-2 border-transparent group-hover:border-emerald-500 transition-all", isDarkMode ? "text-white" : "text-zinc-900")}>{row.dim}</td>
+                    <td className={cn("py-6 px-8 font-light transition-colors", isDarkMode ? "text-zinc-300" : "text-zinc-600")}>{row.concept}</td>
+                    <td className={cn("py-6 px-8 text-sm leading-relaxed transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-500")}>{row.impact}</td>
+                    <td className="py-6 px-8">
+                      <div className="flex justify-center">
+                        <span className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-mono transition-colors",
+                          isDarkMode ? "bg-zinc-800 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-black" : "bg-zinc-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white"
+                        )}>
+                          {row.source}
+                        </span>
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <ImageWithCaption 
+          src="https://drive.google.com/file/d/1mEyChZyKDquc1uybrY2wKFszpkYo8XNc/view?usp=drive_link"
+          caption="صورة 1: لقطة تجريدية لفناء ياباني تقليدي يوضح مفهوم 'الما' والهدوء الفراغي"
+          isDarkMode={isDarkMode}
+        />
+      </section>
+
+      {/* Chapter 1: History */}
+      <section id="section-2" className={cn("py-24 transition-colors duration-500", isDarkMode ? "bg-zinc-950" : "bg-zinc-100")}>
+        <div className="container mx-auto px-6">
+          <SectionTitle number="02" subtitle="المسار التاريخي للتبسيط الراديكالي" isDarkMode={isDarkMode}>الفصل الأول: تاريخ التيار ونشأته</SectionTitle>
+          
+          <div className="grid lg:grid-cols-3 gap-12 mt-16" dir="rtl">
+            <div className="lg:col-span-2 space-y-12">
+              <div className={cn(
+                "p-8 rounded-3xl border transition-all duration-500",
+                isDarkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+              )}>
+                <h3 className={cn("text-2xl font-light mb-6 flex items-center gap-3 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                  الإرهاصات المبكرة: البنائية الروسية والسوبريماتية
+                </h3>
+                <p className={cn("leading-relaxed mb-6 transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                  في روسيا (1913-1930)، قاد فنانون مثل كازيمير ماليفيتش وفلاديمير تاتلين حركات سعت لتجريد الفن من التمثيل الواقعي. لوحة "المربع الأسود" لماليفيتش مثلت اللحظة الصفرية في التجريد، حيث لا شيء سوى الشكل واللون.
+                </p>
+                <ImageWithCaption 
+                  src="https://drive.google.com/file/d/19cVtHEo5hnk4QUwVnrumzNq2dwTjEms8/view?usp=drive_link"
+                  caption="صورة 2: لوحة المربع الأسود للفنان كازيمير ماليفيتش – 1915"
+                  details={['الفنان: كازيمير ماليفيتش', 'السنة: 1915', 'الحركة: السوبرماتية', 'الموقع: موسكو']}
+                  isDarkMode={isDarkMode}
+                />
+              </div>
+
+              <div className={cn(
+                "p-8 rounded-3xl border transition-all duration-500",
+                isDarkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+              )}>
+                <h3 className={cn("text-2xl font-light mb-6 flex items-center gap-3 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                  جماعة "دي ستايل" والتشكيل الجديد
+                </h3>
+                <p className={cn("leading-relaxed mb-6 transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                  في هولندا (1917)، سعى ثيو فان دويسبرغ وبيت موندريان للوصول إلى لغة بصرية كونية تعتمد على الخطوط الأفقية والرأسية والألوان الأساسية. يعتبر "منزل ريتفيلد شرويدر" الأيقونة المعمارية لهذه الحركة.
+                </p>
+                <ImageWithCaption 
+                  src="https://drive.google.com/file/d/1fC-0gOlNk7B3ku3JV29eTjW2RcTvujsK/view?usp=drive_link"
+                  caption="صورة 3: منزل ريتفيلد شرويدر في أوترخت – هولندا"
+                  details={['المصمم: جيرريت ريتفيلد', 'السنة: 1924', 'الموقع: أوترخت', 'الأهمية: ترجمة 3D لمبادئ De Stijl']}
+                  isDarkMode={isDarkMode}
+                />
+              </div>
+
+              <div className={cn(
+                "p-8 rounded-3xl border transition-all duration-500",
+                isDarkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+              )}>
+                <h3 className={cn("text-2xl font-light mb-6 flex items-center gap-3 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                  مدرسة البوهاوس والتحول الوظيفي
+                </h3>
+                <p className={cn("leading-relaxed mb-6 transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                  تعتبر البوهاوس (1919-1933) المصهر الذي حول التجريد الفني إلى تطبيق صناعي ومعماري. من خلال شعارات مثل "الشكل يتبع الوظيفة"، رسخ والتر غروبيوس وميس فان دير روه مبدأ التخلص من كل ما هو غير ضروري.
+                </p>
+                <ImageWithCaption 
+                  src="https://drive.google.com/file/d/1-8ZMHlc0I0ngGVVkj9CV_UlWToq9rncX/view?usp=drive_link"
+                  caption="صورة 4: مبنى مدرسة البوهاوس في ديساو – ألمانيا"
+                  details={['المصمم: والتر غروبيوس', 'السنة: 1925', 'الموقع: ديساو', 'المواد: حديد، زجاج، خرسانة']}
+                  isDarkMode={isDarkMode}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              <div className="sticky top-24">
+                <h4 className={cn("text-xl font-light mb-8 border-b pb-4 transition-colors", isDarkMode ? "text-white border-zinc-800" : "text-zinc-900 border-zinc-200")}>الخط الزمني للتطور</h4>
+                <div className="space-y-8">
+                  {timelineData.map((item, i) => (
+                    <div key={i} className={cn("relative pr-8 border-r transition-colors", isDarkMode ? "border-zinc-800" : "border-zinc-200")}>
+                      <div className="absolute top-0 right-[-5px] w-2 h-2 bg-emerald-500 rounded-full" />
+                      <div className="text-emerald-500 font-mono text-sm mb-1">{item.year}</div>
+                      <div className={cn("font-medium mb-1 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>{item.event}</div>
+                      <div className="text-zinc-500 text-xs">{item.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className={cn(
+            "mt-24 p-12 rounded-[3rem] border transition-all duration-500",
+            isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+          )} dir="rtl">
+            <h3 className={cn("text-3xl font-light mb-8 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>انطلاق الرسمي: نيويورك والستينيات</h3>
+            <p className={cn("text-lg leading-relaxed mb-12 transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+              تبلور المينيماليزم كتيار واعٍ في الستينيات في نيويورك، كرد فعل عنيف ضد "التعبيرية التجريدية". شعار فرانك ستيلا الشهير "ما تراه هو ما تراه" لخص هذه المرحلة؛ حيث لا توجد معانٍ خفية أو رموز، بل المادة والفراغ هما الحقيقة الوحيدة.
+            </p>
+            <ImageWithCaption 
+              src="https://drive.google.com/file/d/1CWvlV-pxlPmKncBshhtDDBJTpRGmYg8-/view?usp=drive_link"
+              caption="الصورة الشاملة: رواد المينيماليزم في الستينيات"
+              details={['دونالد جود: كائنات محددة', 'فرانك ستيلا: ما تراه هو ما تراه', 'روبرت موريس: العلاقة بين الفراغ والمادة']}
+              isDarkMode={isDarkMode}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive Timeline Chart */}
+      <section className={cn("py-24 transition-colors duration-500", isDarkMode ? "bg-black" : "bg-white")}>
+        <div className="container mx-auto px-6" dir="rtl">
+          <div className="text-center mb-16">
+            <h2 className={cn("text-3xl font-light mb-4 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>
+              الخط الزمني لتطور الجماليات التبسيطية
+            </h2>
+            <p className={cn("text-zinc-500 max-w-2xl mx-auto transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-500")}>
+              يوضح المخطط التالي التسلسل الزمني التقريبي للحركات التي شكلت البنية الفكرية للحدنوية.
+            </p>
+          </div>
+
+          <div className={cn(
+            "p-12 rounded-[3.5rem] border transition-all duration-500",
+            isDarkMode ? "bg-zinc-900/20 border-zinc-800/50" : "bg-zinc-50/50 border-zinc-200"
+          )}>
+            <div className="h-[550px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  layout="vertical"
+                  data={timelineChartData}
+                  margin={{ top: 20, right: 40, left: 40, bottom: 40 }}
+                  barSize={32}
+                >
+                  <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.8} />
+                      <stop offset="100%" stopColor="#22d3ee" stopOpacity={1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid 
+                    strokeDasharray="4 4" 
+                    stroke={isDarkMode ? "#27272a" : "#e4e4e7"} 
+                    horizontal={false} 
+                    verticalFill={[isDarkMode ? '#18181b' : '#f8fafc', 'transparent']}
+                    fillOpacity={0.2}
+                  />
+                  <XAxis 
+                    type="number" 
+                    domain={[1840, 1980]} 
+                    stroke={isDarkMode ? "#52525b" : "#a1a1aa"} 
+                    tick={{ fontSize: 12, fontFamily: 'monospace' }}
+                    axisLine={false}
+                    tickLine={false}
+                    label={{ 
+                      value: 'الإطار الزمني التقريبي', 
+                      position: 'insideBottom', 
+                      offset: -20, 
+                      fill: isDarkMode ? '#71717a' : '#71717a',
+                      fontSize: 14,
+                      fontWeight: 300
+                    }}
+                  />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    stroke={isDarkMode ? "#a1a1aa" : "#3f3f46"} 
+                    tick={(props) => {
+                      const { x, y, payload } = props;
+                      const data = timelineChartData.find(d => d.name === payload.value);
+                      return (
+                        <g transform={`translate(${x},${y})`}>
+                          <text
+                            x={15}
+                            y={-6}
+                            textAnchor="start"
+                            fill={isDarkMode ? "#fff" : "#18181b"}
+                            style={{ fontSize: '14px', fontWeight: 500 }}
+                          >
+                            {data?.title}
+                          </text>
+                          <text
+                            x={15}
+                            y={12}
+                            textAnchor="start"
+                            fill="#06b6d4"
+                            style={{ fontSize: '11px', fontWeight: 400, opacity: 0.9 }}
+                          >
+                            ({data?.desc})
+                          </text>
+                        </g>
+                      );
+                    }}
+                    width={200}
+                    orientation="right"
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: isDarkMode ? '#27272a' : '#f1f5f9', opacity: 0.5 }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className={cn(
+                            "p-5 rounded-2xl border shadow-2xl transition-all duration-300 backdrop-blur-xl",
+                            isDarkMode ? "bg-zinc-900/90 border-zinc-700 text-white" : "bg-white/90 border-zinc-200 text-zinc-900"
+                          )}>
+                            <div className="text-emerald-500 font-mono text-xl mb-2 font-bold">{data.year}</div>
+                            <div className="font-bold text-lg mb-1">{data.title}</div>
+                            <div className={cn("text-sm transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-500")}>{data.desc}</div>
+                            <div className="mt-3 pt-3 border-t border-zinc-700/30 flex items-center gap-2 text-[10px] uppercase tracking-widest text-zinc-500">
+                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              تطور الفكر المعماري
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar 
+                    dataKey="year" 
+                    fill="url(#barGradient)" 
+                    radius={[0, 8, 8, 0]}
+                    animationDuration={1500}
+                    animationEasing="ease-out"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Chapter 2: Pioneers */}
+      <section id="section-3" className="py-24 container mx-auto px-6">
+        <SectionTitle number="03" subtitle="صناع الفراغ الصامت" isDarkMode={isDarkMode}>الفصل الثاني: رواد التيار ومدارسه</SectionTitle>
+        
+        <div className="grid md:grid-cols-3 gap-8 mt-16" dir="rtl">
+          {/* Mies */}
+          <div className="group">
+            <div className={cn(
+              "aspect-[3/4] overflow-hidden rounded-3xl mb-6 relative transition-colors duration-500",
+              isDarkMode ? "bg-zinc-900" : "bg-zinc-100"
+            )}>
+              <img 
+                src="https://lh3.googleusercontent.com/d/1AxAvmrK0bh44ERoLBFvNXMEbpvi6894J" 
+                className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700"
+                alt="Mies van der Rohe"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 flex flex-col justify-end p-8 bg-gradient-to-t from-black via-transparent to-transparent">
+                <h4 className="text-2xl font-light text-white mb-2">ميس فان دير روه</h4>
+                <p className="text-emerald-500 text-sm font-mono">"الأقل هو الأكثر"</p>
+              </div>
+            </div>
+            <p className={cn("text-sm leading-relaxed mb-6 transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+              ركز ميس على "الفراغ الشامل" والشفافية المطلقة، مستخدماً الزجاج والصلب لخلق حدود غير مرئية بين الساكن والطبيعة.
+            </p>
+            <ImageWithCaption 
+              src="https://drive.google.com/file/d/1jmXp6WiJyDi_m4gq9FidOtxUcyT-lga0/view?usp=drive_link"
+              caption="صور 5: جناح برشلونة - انعكاس الرخام والماء"
+              isDarkMode={isDarkMode}
+            />
+          </div>
+
+          {/* Ando */}
+          <div className="group">
+            <div className={cn(
+              "aspect-[3/4] overflow-hidden rounded-3xl mb-6 relative transition-colors duration-500",
+              isDarkMode ? "bg-zinc-900" : "bg-zinc-100"
+            )}>
+              <img 
+                src="https://lh3.googleusercontent.com/d/1MRVJ44X0abk_pTNtJDDr4_cjSsHC-znT" 
+                className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700"
+                alt="Tadao Ando"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 flex flex-col justify-end p-8 bg-gradient-to-t from-black via-transparent to-transparent">
+                <h4 className="text-2xl font-light text-white mb-2">تاداو أندو</h4>
+                <p className="text-emerald-500 text-sm font-mono">"نحت الضوء بالخرسانة"</p>
+              </div>
+            </div>
+            <p className={cn("text-sm leading-relaxed mb-6 transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+              المعماري الياباني الذي نجح في تحويل الخرسانة الصماء إلى مادة روحانية. يمثل أندو "مينيماليزم الشرق" الذي يركز على العزلة.
+            </p>
+            <ImageWithCaption 
+              src="https://drive.google.com/file/d/1qF9BbIxIzbubREDLxm2NPG3UzouGHeKE/view?usp=drive_link"
+              caption="صورة 6: كنيسة الضوء في أوساكا - تاداو أندو"
+              isDarkMode={isDarkMode}
+            />
+          </div>
+
+          {/* Campo Baeza */}
+          <div className="group">
+            <div className={cn(
+              "aspect-[3/4] overflow-hidden rounded-3xl mb-6 relative transition-colors duration-500",
+              isDarkMode ? "bg-zinc-900" : "bg-zinc-100"
+            )}>
+              <img 
+                src="https://lh3.googleusercontent.com/d/1bhiLeIMqN95fnOM3r5aS4pDiUGcGT1C3" 
+                className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700"
+                alt="Campo Baeza"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute inset-0 flex flex-col justify-end p-8 bg-gradient-to-t from-black via-transparent to-transparent">
+                <h4 className="text-2xl font-light text-white mb-2">كامبو بايزا</h4>
+                <p className="text-emerald-500 text-sm font-mono">"الأكثر بالقليل"</p>
+              </div>
+            </div>
+            <p className={cn("text-sm leading-relaxed mb-6 transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+              يمثل ذروة المينيماليزم التجريدي الغربي. يرتكز فكره على ثنائية "الجاذبية والضوء"؛ فالجاذبية تبني المكان، والضوء يبني الزمان.
+            </p>
+            <ImageWithCaption 
+              src="https://drive.google.com/file/d/1BVMNqylIqc42X5TPjBVeb4SnAzo28Pxl/view?usp=drive_link"
+              caption="صورة 7: منزل غاسبار في قادش - كامبو بايزا"
+              isDarkMode={isDarkMode}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Full width image between sections */}
+      <div className="w-full relative h-[60vh] md:h-[80vh] overflow-hidden">
+        <img 
+          src="https://lh3.googleusercontent.com/d/1Zgivv6Hl_bSVVirQJS8SKS84b1VS6GO0" 
+          className="w-full h-full object-cover"
+          alt="منظور شامل وتفصيلي لمنزل غاسبار - قادش"
+          referrerPolicy="no-referrer"
+        />
+        <div className={cn(
+          "absolute inset-0 transition-colors duration-500",
+          isDarkMode ? "bg-gradient-to-t from-black via-transparent to-black/20" : "bg-gradient-to-t from-white via-transparent to-white/20"
+        )} />
+        <div className="absolute bottom-12 right-12 text-right px-6" dir="rtl">
+          <p className="text-emerald-500 font-medium text-xl mb-2">منظور شامل وتفصيلي لمنزل غاسبار - قادش</p>
+          <p className={cn("text-sm max-w-md transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>أيقونة المينيماليزم لكامبو بايزا التي تجسد فلسفة "الأكثر بالقليل" من خلال نقاء الفراغ وسطوع الضوء.</p>
+        </div>
+      </div>
+
+      {/* Chapter 3: Koshino House */}
+      <section id="section-4" className={cn("py-24 transition-colors duration-500", isDarkMode ? "bg-zinc-950" : "bg-zinc-100")}>
+        <div className="container mx-auto px-6">
+          <SectionTitle number="04" subtitle="مختبر أندو للمينيماليزم والارتباط بالطبيعة" isDarkMode={isDarkMode}>الفصل الثالث: دراسة تحليلية لمنزل كوشينو</SectionTitle>
+          
+          <div className="grid lg:grid-cols-2 gap-16 mt-16" dir="rtl">
+            <div className="space-y-8">
+              <div className={cn(
+                "p-8 rounded-3xl border transition-all duration-500",
+                isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+              )}>
+                <h3 className={cn("text-2xl font-light mb-4 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>تعريف بالمبنى والسياق</h3>
+                <p className={cn("leading-relaxed transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                  صمم أندو هذا المنزل لمصممة الأزياء "هيروكو كوشينو" على موقع جبلي كثيف الأشجار. تمثل الاستراتيجية الرئيسية في "الدفن الجزئي" للكتل تحت الأرض لاحترام التضاريس وتوفير ملاذ هادئ بعيداً عن المدينة.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className={cn(
+                  "p-6 rounded-2xl border transition-all duration-500",
+                  isDarkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+                )}>
+                  <div className="text-emerald-500 text-xl font-bold mb-1">1980</div>
+                  <div className="text-zinc-500 text-xs">سنة التأسيس</div>
+                </div>
+                <div className={cn(
+                  "p-6 rounded-2xl border transition-all duration-500",
+                  isDarkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+                )}>
+                  <div className="text-emerald-500 text-xl font-bold mb-1">أشيا</div>
+                  <div className="text-zinc-500 text-xs">الموقع - اليابان</div>
+                </div>
+              </div>
+
+              <div className={cn(
+                "p-8 rounded-3xl border transition-all duration-500",
+                isDarkMode ? "bg-emerald-500/5 border-emerald-500/20" : "bg-emerald-50 border-emerald-200"
+              )}>
+                <h4 className="text-emerald-500 font-medium mb-4">المكونات الفراغية</h4>
+                <ul className="space-y-4 text-sm">
+                  <li className="flex items-start gap-3">
+                    <ChevronRight className="w-4 h-4 text-emerald-500 shrink-0 mt-1" />
+                    <div><span className={cn("transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>الكتلة الشمالية:</span> فراغ مزدوج الارتفاع للمعيشة والمطبخ.</div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <ChevronRight className="w-4 h-4 text-emerald-500 shrink-0 mt-1" />
+                    <div><span className={cn("transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>الكتلة الجنوبية:</span> غرف النوم المنظمة خطياً للخصوصية.</div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <ChevronRight className="w-4 h-4 text-emerald-500 shrink-0 mt-1" />
+                    <div><span className={cn("transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>المرسم:</span> أُضيف لاحقاً بشكل منحني يكسر حدة الخطوط.</div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <ImageWithCaption 
+                src="https://drive.google.com/file/d/1XWCSClQqSCgFZVtr4KKwN33Z09f6VLIz/view?usp=drive_link"
+                caption="منزل كوشينو - لقطة خارجية"
+                isDarkMode={isDarkMode}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <img src="https://lh3.googleusercontent.com/d/1bZBvlQiblJYKlXYv-35f_Sdcq0GMOIcY" className={cn("rounded-xl border transition-colors", isDarkMode ? "border-zinc-800" : "border-zinc-200")} alt="Plan 1" />
+                <img src="https://lh3.googleusercontent.com/d/1a9lj_4l7Pdei4T3r6Mv4AUrxagcW4nwT" className={cn("rounded-xl border transition-colors", isDarkMode ? "border-zinc-800" : "border-zinc-200")} alt="Plan 2" />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-16">
+            <ImageWithCaption 
+              src="https://drive.google.com/file/d/1XwCjEYXp-Ap3oZOiKEDmtk3VnaV3HGAG/view?usp=drive_link"
+              caption="دراسة تحليلية شاملة لمنزل كوشينو"
+              isDarkMode={isDarkMode}
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 mt-16" dir="rtl">
+            <div className={cn(
+              "p-8 rounded-3xl border transition-all duration-500",
+              isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+            )}>
+              <h3 className={cn("text-2xl font-light mb-6 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>دراسة الواجهات والتفاصيل</h3>
+              <p className={cn("leading-relaxed mb-6 transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                تخلو الواجهات تماماً من أي زخرفة، حيث تصبح "ثقوب الزراجين" الناتجة عن صب الخرسانة هي الزينة الوحيدة المنتظمة هندسياً. استخدام قوالب الخشب المصقولة جعل سطح الخرسانة ناعماً وعاكساً للضوء.
+              </p>
+              <ImageWithCaption 
+                src="https://drive.google.com/file/d/14QD2eYg4gOwvl988oMzn4k6SXCVPgedl/view?usp=drive_link"
+                caption="صورة 8: تفصيل مقرب لسطح الخرسانة في منزل كوشينو"
+                isDarkMode={isDarkMode}
+              />
+            </div>
+            <div className="space-y-6">
+              <ImageWithCaption 
+                src="https://drive.google.com/file/d/1P6mn_WlCv8-HgxammAzPcttWBIK8m1KV/view?usp=drive_link"
+                caption="تداخل الكتلة المنحنية مع التضاريس"
+                isDarkMode={isDarkMode}
+              />
+              <ImageWithCaption 
+                src="https://drive.google.com/file/d/1Z3Q6eBCw__Q2C6ftIr0D3uIqrCgzAlyo/view?usp=drive_link"
+                caption="منظور ليلي يظهر شفافية الفراغات"
+                isDarkMode={isDarkMode}
+              />
+            </div>
+          </div>
+
+          {/* Koshino House Analysis Table */}
+          <div className={cn(
+            "mt-24 border rounded-[2.5rem] overflow-hidden transition-all duration-500",
+            isDarkMode ? "bg-zinc-900/20 border-zinc-800/50" : "bg-white border-zinc-200 shadow-sm"
+          )} dir="rtl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-right border-collapse">
+                <thead>
+                  <tr className={isDarkMode ? "bg-zinc-900/50" : "bg-zinc-50"}>
+                    <th className={cn("p-6 font-medium border-b transition-colors", isDarkMode ? "text-white border-zinc-800" : "text-zinc-900 border-zinc-200")}>المكون الفراغي</th>
+                    <th className={cn("p-6 font-medium border-b transition-colors", isDarkMode ? "text-white border-zinc-800" : "text-zinc-900 border-zinc-200")}>التحليل التصميمي</th>
+                    <th className={cn("p-6 font-medium border-b transition-colors", isDarkMode ? "text-white border-zinc-800" : "text-zinc-900 border-zinc-200")}>الأثر الحسي</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { component: 'الفناء المركزي', analysis: 'مساحة مفتوحة تربط الكتلتين', impact: 'دمج الطبيعة والضوء في قلب السكن' },
+                    { component: 'النفق الرابط', analysis: 'ممر تحت الأرض أسفل الدرج', impact: 'الانتقال من الضوء إلى العتمة ثم الضوء' },
+                    { component: 'الشقوق الضوئية', analysis: 'فتحات علوية ورأسية نحيفة', impact: 'تحويل الجدران إلى لوحات من الظل' },
+                    { component: 'نظام الموديول', analysis: 'يعتمد على قياسات "التاتامي"', impact: 'تحقيق التناغم والنسب الإنسانية' },
+                  ].map((row, idx) => (
+                    <tr key={idx} className="group hover:bg-emerald-500/5 transition-colors">
+                      <td className={cn("p-6 border-b transition-colors font-medium", isDarkMode ? "text-white border-zinc-800/50" : "text-zinc-900 border-zinc-100")}>{row.component}</td>
+                      <td className={cn("p-6 border-b transition-colors", isDarkMode ? "text-zinc-400 border-zinc-800/50" : "text-zinc-600 border-zinc-100")}>{row.analysis}</td>
+                      <td className={cn("p-6 border-b transition-colors", isDarkMode ? "text-zinc-500 border-zinc-800/50" : "text-zinc-500 border-zinc-100")}>{row.impact}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Chapter 4: Olnick Pavilion */}
+      <section id="section-5" className="py-24 container mx-auto px-6">
+        <SectionTitle number="05" subtitle="أحدث تجليات فكر كامبو بايزا حول الفراغ المطلق" isDarkMode={isDarkMode}>الفصل الرابع: دراسة تحليلية لجناح روبرت أولنيك</SectionTitle>
+        
+        <div className="grid lg:grid-cols-2 gap-16 mt-16 items-center" dir="rtl">
+          <div>
+            <ImageWithCaption 
+              src="https://drive.google.com/file/d/1EklklqWPXFvLX3u8El5BvGPFCQ7Oqv75/view?usp=drive_link"
+              caption="جناح روبرت أولنيك - نيويورك 2023"
+              isDarkMode={isDarkMode}
+            />
+          </div>
+          <div className="space-y-8">
+            <div className={cn(
+              "p-8 rounded-3xl border transition-all duration-500",
+              isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+            )}>
+              <h3 className={cn("text-2xl font-light mb-4 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>المفهوم: الفراغ الأيزوتروبي</h3>
+              <p className={cn("leading-relaxed transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                يتبنى بايزا هنا مفهوم "الفراغ الأيزوتروبي" (Isotropic Space)، وهو فراغ متجانس تماماً يبدو وكأنه يسبح في الضوء بلا بداية أو نهاية. المكعب المثالي (Gallery 2) هو قلب المشروع، مكعب أبيض بأبعاد 10*10*10 متر.
+              </p>
+            </div>
+            
+            <div className={cn(
+              "p-8 rounded-3xl border transition-all duration-500",
+              isDarkMode ? "bg-emerald-500/5 border-emerald-500/20" : "bg-emerald-50 border-emerald-200"
+            )}>
+              <h4 className="text-emerald-500 font-medium mb-6">التفصيل المعماري</h4>
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500 font-bold">1</div>
+                  <div>
+                    <div className={cn("font-medium transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>قياس الفتحات: 2.10 * 2.10 م</div>
+                    <div className="text-zinc-500 text-xs">تعمل كمداخل ومصادر ضوء دقيقة</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500 font-bold">2</div>
+                  <div>
+                    <div className={cn("font-medium transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>المادة الداخلية: جص أبيض ناصع</div>
+                    <div className="text-zinc-500 text-xs">تعظيم انعكاس الضوء وإلغاء الظلال</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500 font-bold">3</div>
+                  <div>
+                    <div className={cn("font-medium transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>الساعة الشمسية</div>
+                    <div className="text-zinc-500 text-xs">حزم الضوء تتحرك عبر الأسطح طوال اليوم</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-16 grid md:grid-cols-3 gap-6">
+          <ImageWithCaption src="https://drive.google.com/file/d/1tdC5fWnLdArU8ZlEHfRipXsEYzTu7uAb/view?usp=drive_link" caption="منظور داخلي لصالة العرض" isDarkMode={isDarkMode} />
+          <ImageWithCaption src="https://drive.google.com/file/d/1jely6kOWLGV8E7ox45TJXAPUOyqfQzBz/view?usp=drive_link" caption="المساقط الأفقية" isDarkMode={isDarkMode} />
+          <ImageWithCaption src="https://drive.google.com/file/d/1ZNFTT5snG3F7j6jFbMMr1hgy_G2oKaYB/view?usp=drive_link" caption="مقطع رأسي" isDarkMode={isDarkMode} />
+        </div>
+
+        {/* Olnick Pavilion Detail Table */}
+        <div className={cn(
+          "mt-24 border rounded-[2.5rem] overflow-hidden transition-all duration-500",
+          isDarkMode ? "bg-zinc-900/20 border-zinc-800/50" : "bg-white border-zinc-200 shadow-sm"
+        )} dir="rtl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-right border-collapse">
+              <thead>
+                <tr className={isDarkMode ? "bg-zinc-900/50" : "bg-zinc-50"}>
+                  <th className={cn("p-6 font-medium border-b transition-colors", isDarkMode ? "text-white border-zinc-800" : "text-zinc-900 border-zinc-200")}>التفصيل المعماري</th>
+                  <th className={cn("p-6 font-medium border-b transition-colors", isDarkMode ? "text-white border-zinc-800" : "text-zinc-900 border-zinc-200")}>القياس / المواصفة</th>
+                  <th className={cn("p-6 font-medium border-b transition-colors", isDarkMode ? "text-white border-zinc-800" : "text-zinc-900 border-zinc-200")}>الوظيفة الحدنوية</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { detail: 'قياس الفتحات', spec: '2.10 * 2.10 م', function: 'تعمل كمداخل (الأبواب القياسية) ومصادر ضوء' },
+                  { detail: 'المادة الخارجية', spec: 'خرسانة مكشوفة مصبوبة', function: 'ربط المبنى بالطابع الصناعي للموقع' },
+                  { detail: 'المادة الداخلية', spec: 'جص أبيض ناصع', function: 'تعظيم انعكاس الضوء وإلغاء الظلال الحادة' },
+                  { detail: 'الشفافية', spec: 'واجهة زجاجية للمقهى', function: 'تذويب الحدود مع المناظر الطبيعية المحيطة' },
+                ].map((row, idx) => (
+                  <tr key={idx} className="group hover:bg-emerald-500/5 transition-colors">
+                    <td className={cn("p-6 border-b transition-colors font-medium", isDarkMode ? "text-white border-zinc-800/50" : "text-zinc-900 border-zinc-100")}>{row.detail}</td>
+                    <td className={cn("p-6 border-b transition-colors", isDarkMode ? "text-zinc-400 border-zinc-800/50" : "text-zinc-600 border-zinc-100")}>{row.spec}</td>
+                    <td className={cn("p-6 border-b transition-colors", isDarkMode ? "text-zinc-500 border-zinc-800/50" : "text-zinc-500 border-zinc-100")}>{row.function}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparative Analysis Section */}
+      <section className={cn("py-24 transition-colors duration-500", isDarkMode ? "bg-black" : "bg-white")}>
+        <div className="container mx-auto px-6" dir="rtl">
+          <div className="text-center mb-16">
+            <h2 className={cn("text-4xl font-light mb-4 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>
+              الدراسة التحليلية النقدية للحالات الدراسية
+            </h2>
+            <p className={cn("text-zinc-500 max-w-3xl mx-auto transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-500")}>
+              يفكك هذا القسم التحليلي العلاقة بين الكتلة والضوء، مظهراً التباين بين المينيماليزم "الدرامي/المادي" عند تاداو أندو، والمينيماليزم "النوراني/التجريدي" عند كامبو بايزا.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-24">
+            {/* Ando Card */}
+            <div className={cn(
+              "p-10 rounded-[3rem] border transition-all duration-500",
+              isDarkMode ? "bg-zinc-900/40 border-zinc-800" : "bg-zinc-50 border-zinc-200"
+            )}>
+              <h3 className="text-2xl font-bold text-orange-500 mb-6">منزل كوشينو (Tadao Ando)</h3>
+              <div className="space-y-6">
+                <div>
+                  <h4 className={cn("font-bold mb-2", isDarkMode ? "text-white" : "text-zinc-900")}>الفكرة والسياق:</h4>
+                  <p className={cn("text-sm leading-relaxed", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                    "حصن" للسكينة، عدم المساس بالطبيعة بل الدفن الجزئي بالمنحدر لتحقيق اندماج بصري ومناخي [Ando, 1995].
+                  </p>
+                </div>
+                <div>
+                  <h4 className={cn("font-bold mb-2", isDarkMode ? "text-white" : "text-zinc-900")}>التحليل الهندسي:</h4>
+                  <p className={cn("text-sm leading-relaxed", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                    كتلتان مستطيلتان صارمتان، كُسرت لاحقاً بإضافة استوديو ذو جدار منحني يمثل (الطبيعة) مقابل المستطيل (المنطق).
+                  </p>
+                </div>
+                <div>
+                  <h4 className={cn("font-bold mb-2", isDarkMode ? "text-white" : "text-zinc-900")}>المعالجة الضوئية (التفاصيل):</h4>
+                  <p className={cn("text-sm leading-relaxed", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                    الاستغناء عن النوافذ المعتادة لصالح "شقوق ضوئية" طولية تحول الجدار الخرساني المصقول إلى لوحة متغيرة زمنياً بتأثير (Chiaroscuro) القوي.
+                  </p>
+                </div>
+                <div className="pt-6">
+                  <img 
+                    src="https://lh3.googleusercontent.com/d/1Z3Q6eBCw__Q2C6ftIr0D3uIqrCgzAlyo" 
+                    className={cn("w-full h-48 object-cover rounded-2xl border transition-colors", isDarkMode ? "border-zinc-800" : "border-zinc-200")} 
+                    alt="Koshino House"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Baeza Card */}
+            <div className={cn(
+              "p-10 rounded-[3rem] border transition-all duration-500",
+              isDarkMode ? "bg-zinc-900/40 border-zinc-800" : "bg-zinc-50 border-zinc-200"
+            )}>
+              <h3 className="text-2xl font-bold text-cyan-500 mb-6">جناح روبرت أولنيك (Campo Baeza)</h3>
+              <div className="space-y-6">
+                <div>
+                  <h4 className={cn("font-bold mb-2", isDarkMode ? "text-white" : "text-zinc-900")}>الفكرة والسياق:</h4>
+                  <p className={cn("text-sm leading-relaxed", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                    ترجمة لمفهوم "المكعب المثالي" والفراغ المتساوي الخواص (Isotropic)، حيث يبدو الفراغ معلقاً في الضوء بلا بداية أو نهاية.
+                  </p>
+                </div>
+                <div>
+                  <h4 className={cn("font-bold mb-2", isDarkMode ? "text-white" : "text-zinc-900")}>التحليل الهندسي:</h4>
+                  <p className={cn("text-sm leading-relaxed", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                    متوازي مستطيلات خرساني مندمج بالأرض، يعلوه برج مكعب ناصع البياض (10x10x10متر) يعمل كقلب للمشروع.
+                  </p>
+                </div>
+                <div>
+                  <h4 className={cn("font-bold mb-2", isDarkMode ? "text-white" : "text-zinc-900")}>المعالجة الضوئية (التفاصيل):</h4>
+                  <p className={cn("text-sm leading-relaxed", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                    غياب النوافذ على مستوى العين، واستخدام 4 فتحات زاوية علوية تجعل الفراغ الأبيض الغامر يعمل كـ "ساعة شمسية" تقيس الزمن بدقة.
+                  </p>
+                </div>
+                <div className="pt-6">
+                  <img 
+                    src="https://lh3.googleusercontent.com/d/1EklklqWPXFvLX3u8El5BvGPFCQ7Oqv75" 
+                    className={cn("w-full h-48 object-cover rounded-2xl border transition-colors", isDarkMode ? "border-zinc-800" : "border-zinc-200")} 
+                    alt="Olnick Pavilion"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Radar Chart */}
+          <div className={cn(
+            "p-12 rounded-[4rem] border transition-all duration-500",
+            isDarkMode ? "bg-zinc-900/20 border-zinc-800/50" : "bg-zinc-50/50 border-zinc-200"
+          )}>
+            <h3 className={cn("text-2xl font-light mb-12 text-center transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>
+              تحليل راداري مقارن: أندو مقابل بايزا
+            </h3>
+            <p className="text-center text-zinc-500 text-sm mb-12">
+              مقارنة الخصائص الفراغية الظاهراتية للمشروعين من حيث التفاعل مع المستخدم [Pallasmaa, 2012]
+            </p>
+            
+            <div className="h-[600px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                  <PolarGrid stroke={isDarkMode ? "#27272a" : "#e4e4e7"} />
+                  <PolarAngleAxis 
+                    dataKey="subject" 
+                    tick={{ fill: isDarkMode ? "#a1a1aa" : "#3f3f46", fontSize: 12 }}
+                  />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar
+                    name="تاداو أندو (منزل كوشينو)"
+                    dataKey="ando"
+                    stroke="#f97316"
+                    fill="#f97316"
+                    fillOpacity={0.5}
+                  />
+                  <Radar
+                    name="كامبو بايزا (جناح أولنيك)"
+                    dataKey="baeza"
+                    stroke="#06b6d4"
+                    fill="#06b6d4"
+                    fillOpacity={0.5}
+                  />
+                  <Legend />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: isDarkMode ? '#18181b' : '#ffffff', 
+                      border: isDarkMode ? '1px solid #27272a' : '1px solid #e4e4e7', 
+                      borderRadius: '12px',
+                      color: isDarkMode ? '#ffffff' : '#000000',
+                      textAlign: 'right'
+                    }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Chapter 5: Future */}
+      <section id="section-6" className={cn("py-24 overflow-hidden transition-colors duration-500", isDarkMode ? "bg-zinc-950" : "bg-zinc-100")}>
+        <div className="container mx-auto px-6">
+          <SectionTitle number="06" subtitle="الاستدامة، التكنولوجيا، والابتكار" isDarkMode={isDarkMode}>الفصل الخامس: المينيماليزم المستقبلي</SectionTitle>
+          
+          <div className="mb-16" dir="rtl">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-8">
+                <h3 className={cn("text-3xl font-light leading-tight transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>نحو "حدنوية دافئة" تلبي احتياجات العصر الرقمي</h3>
+                <p className={cn("text-lg leading-relaxed transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                  تخلص النتائج إلى أن مستقبل التيار يكمن في اندماجه مع التكنولوجيا الذكية والمواد المبتكرة لتحقيق توازن بين الكفاءة التقنية والراحة الإنسانية.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <span className={cn("px-4 py-2 border rounded-full text-sm text-emerald-500 transition-colors", isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200 shadow-sm")}>الاستدامة البيئية</span>
+                  <span className={cn("px-4 py-2 border rounded-full text-sm text-emerald-500 transition-colors", isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200 shadow-sm")}>التكنولوجيا الذكية</span>
+                  <span className={cn("px-4 py-2 border rounded-full text-sm text-emerald-500 transition-colors", isDarkMode ? "bg-zinc-900 border-zinc-800" : "bg-white border-zinc-200 shadow-sm")}>المواد المبتكرة</span>
+                </div>
+              </div>
+              <div className="relative">
+                <div className="absolute -inset-4 bg-emerald-500/20 blur-3xl rounded-full opacity-20" />
+                <img src="https://lh3.googleusercontent.com/d/1O1y3q0Q-7OOLDgideRwYYED-UBdaZZPo" className={cn("relative rounded-3xl border shadow-2xl transition-colors", isDarkMode ? "border-zinc-800" : "border-zinc-200")} alt="Future Concept" />
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Comparison / Infographic */}
+          <div className={cn(
+            "my-24 p-12 rounded-[3rem] border transition-all duration-500",
+            isDarkMode ? "bg-zinc-900/50 border-zinc-800" : "bg-white border-zinc-200 shadow-sm"
+          )} dir="rtl">
+            <h3 className={cn("text-2xl font-light mb-12 text-center transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>تحليل مقارناتي: الحدنوية التقليدية vs المستقبلية</h3>
+            <div className="h-[400px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={[
+                  { name: 'الاستدامة', traditional: 40, future: 95 },
+                  { name: 'التكنولوجيا', traditional: 20, future: 90 },
+                  { name: 'الراحة النفسية', traditional: 70, future: 85 },
+                  { name: 'كفاءة المواد', traditional: 60, future: 98 },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? "#27272a" : "#e4e4e7"} />
+                  <XAxis dataKey="name" stroke={isDarkMode ? "#71717a" : "#71717a"} />
+                  <YAxis stroke={isDarkMode ? "#71717a" : "#71717a"} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: isDarkMode ? '#18181b' : '#ffffff', 
+                      border: isDarkMode ? '1px solid #27272a' : '1px solid #e4e4e7', 
+                      borderRadius: '12px',
+                      color: isDarkMode ? '#ffffff' : '#000000'
+                    }}
+                    itemStyle={{ color: '#10b981' }}
+                  />
+                  <Bar dataKey="traditional" name="الحدنوية التقليدية" fill={isDarkMode ? "#3f3f46" : "#d4d4d8"} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="future" name="الحدنوية المستقبلية" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Chapter 6: Visual Vision (Full Width) */}
+      <section id="section-7" className={cn("transition-colors duration-500", isDarkMode ? "bg-black" : "bg-white")}>
+        <div className="py-24 container mx-auto px-6">
+          <SectionTitle number="07" subtitle="رؤية بصرية للمستقبل الحدنوي" isDarkMode={isDarkMode}>آفاق المستقبل</SectionTitle>
+          
+          {/* Futuristic Architectural Icons */}
+          <div className="mt-24" dir="rtl">
+            <h3 className={cn("text-3xl font-light mb-12 text-center transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>أيقونات معمارية مستقبلية</h3>
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  title: 'متحف اللوفر أبوظبي',
+                  architect: 'جان نوفيل',
+                  desc: '55 مبنى مصمم كـ "مدينة متحفية". قبة قطرها 180م بأنماط هندسية معقدة (8 طبقات) تنتج تأثير "مطر الضوء". تعتمد القبة على 4 أعمدة مخفية فقط، مما يرسخ وهم الطفو. استخدام مكثف لـ UHPC.'
+                },
+                {
+                  title: 'أبل بارك (Apple Park)',
+                  architect: 'فوسترت + بارترنز',
+                  desc: 'حلقة عملاقة تدمج الاستدامة المطلقة (تهوية طبيعية 9 أشهر بالعام، طاقة متجددة 100%). أكبر ألواح زجاجية منحنية بالعالم تلغي الحدود البصرية مع الغابة المحيطة لتوفير مساحات رحبة ومفتوحة.'
+                },
+                {
+                  title: 'مركز حيدر علييف',
+                  architect: 'زها حديد',
+                  desc: 'علاقة سلسة خالية من الزوايا الحادة. الساحة الحضرية ترتفع لتغلف الفراغات، مطممسة التمييز بين الأرض والسقف والواجهة. تموجات وتشعبات توجه الزوار ديناميكياً بهيكل معدني معقد متخفي في قشرة بيضاء بسيطة.'
+                }
+              ].map((item, i) => (
+                <div key={i} className={cn(
+                  "p-8 rounded-[2.5rem] border transition-all duration-500 hover:scale-[1.02]",
+                  isDarkMode ? "bg-zinc-900/40 border-zinc-800" : "bg-zinc-50 border-zinc-200 shadow-sm"
+                )}>
+                  <h4 className="text-2xl font-bold text-blue-500 mb-2">{item.title}</h4>
+                  <div className="text-zinc-500 text-sm mb-6">المعماري: {item.architect}</div>
+                  <p className={cn("text-sm leading-relaxed transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Futuristic Minimalism Applications */}
+          <div className="mt-32" dir="rtl">
+            <div className="text-center mb-16">
+              <h3 className="text-4xl font-bold text-blue-500 mb-6">تطبيقات المينيماليزم المستقبلي (Futuristic Minimalism)</h3>
+              <p className={cn("text-lg max-w-4xl mx-auto leading-relaxed transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                يتطور التيار التبسيطي حالياً ليدمج الاستدامة المتقدمة والتكنولوجيا الذكية مع الأشكال العضوية غير التقليدية، مكوناً ما يعرف بـ "الحدنوية المستقبلية". هذا الاتجاه يتخلى عن الزوايا الحادة الصارمة لصالح الانسيابية والاندماج البيئي الكلي [McDonough, 2002].
+              </p>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              {/* Donut Chart */}
+              <div className={cn(
+                "p-10 rounded-[3rem] border transition-all duration-500",
+                isDarkMode ? "bg-zinc-900/30 border-zinc-800" : "bg-zinc-50 border-zinc-200"
+              )}>
+                <h4 className={cn("text-xl font-light mb-8 text-center transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>أوزان خصائص المينيماليزم المستقبلي في المشاريع الحديثة</h4>
+                <div className="h-[400px] w-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={donutData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={80}
+                        outerRadius={120}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {donutData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: isDarkMode ? '#18181b' : '#ffffff', 
+                          border: isDarkMode ? '1px solid #27272a' : '1px solid #e4e4e7', 
+                          borderRadius: '12px',
+                          color: isDarkMode ? '#ffffff' : '#000000',
+                          textAlign: 'right'
+                        }}
+                      />
+                      <Legend verticalAlign="bottom" height={36}/>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Numbered Points */}
+              <div className="space-y-8">
+                {[
+                  {
+                    title: 'التقنيات والمواد المبتكرة',
+                    desc: 'استخدام خرسانة ألياف الأداء الفائق (UHPC)، زجاج ذكي، أنظمة طاقة متجددة مدمجة بسلاسة مخفية لتعزيز الكفاءة البيئية دون مساومة جمالية.'
+                  },
+                  {
+                    title: 'الفراغات الانسيابية والعضوية',
+                    desc: 'طمس الحدود بين الداخل والخارج، خطط طوابق مفتوحة بالكامل، وتحدي المعايير المعتادة عبر أشكال هندسية غير متماثلة أو منحنيات حرة.'
+                  },
+                  {
+                    title: 'الإضاءة التكنولوجية التكيفية',
+                    desc: 'نظم ذكية تحاكي الإضاءة الطبيعية لتقليل الاستهلاك، وتخلق تأثيرات سينمائية ديناميكية ترتبط بحركة الشمس والمستخدم.'
+                  }
+                ].map((point, i) => (
+                  <div key={i} className="flex gap-6 items-start">
+                    <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold shrink-0 text-xl shadow-lg shadow-orange-500/20">
+                      {i + 1}
+                    </div>
+                    <div>
+                      <h5 className={cn("text-xl font-bold mb-2 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>{point.title}</h5>
+                      <p className={cn("leading-relaxed transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                        {point.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex flex-col">
+          {[
+            "181wkbrTbxdKbVpmz0g2SIhV5rRBV1CU6",
+            "19JtATPy5mNLr6tupBNgFc2JSrOUU5CYc",
+            "1SrGOAFCnzjU1J8eqha85vt9LnFIIMxlX",
+            "1wfngmuPzkyMnh1Pjuys-pP6gLW_wfLK3",
+            "1m5_Kc6qUec4gCFDpi_-s3gkFzH338uwL",
+            "1yhLvjr24QC9Mh9MmPySKBGSd11qmMwOq"
+          ].map((id, i) => (
+            <motion.div 
+              key={id}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 1 }}
+              viewport={{ once: true }}
+              className="w-full relative overflow-hidden"
+            >
+              <img 
+                src={`https://lh3.googleusercontent.com/d/${id}`} 
+                className="w-full h-auto object-cover"
+                alt={`Future Vision ${i + 1}`}
+                referrerPolicy="no-referrer"
+              />
+              <div className={cn(
+                "absolute inset-0 pointer-events-none transition-colors duration-500",
+                isDarkMode ? "bg-gradient-to-b from-black/20 via-transparent to-black/40" : "bg-gradient-to-b from-white/20 via-transparent to-white/40"
+              )} />
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className={cn(
+        "py-24 border-t transition-colors duration-500",
+        isDarkMode ? "border-zinc-900 bg-black" : "border-zinc-200 bg-zinc-50"
+      )}>
+        <div className="container mx-auto px-6 text-center" dir="rtl">
+          <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-black font-bold mx-auto mb-8 text-2xl">
+            AH
+          </div>
+          <h2 className={cn("text-3xl font-light mb-4 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>م. أمير الدين الحمامي</h2>
+          <p className={cn("mb-12 max-w-xl mx-auto transition-colors", isDarkMode ? "text-zinc-500" : "text-zinc-600")}>
+            باحث في كلية الهندسة المعمارية - جامعة دمشق. مهتم بفلسفة الفراغ والحدنوية المعاصرة وتطبيقاتها المستدامة.
+          </p>
+          
+          <div className="flex justify-center gap-8 mb-12">
+            <a href="#" className={cn("transition-colors", isDarkMode ? "text-zinc-400 hover:text-emerald-500" : "text-zinc-600 hover:text-emerald-500")}><Info className="w-6 h-6" /></a>
+            <a href="#" className={cn("transition-colors", isDarkMode ? "text-zinc-400 hover:text-emerald-500" : "text-zinc-600 hover:text-emerald-500")}><User className="w-6 h-6" /></a>
+            <a href="#" className={cn("transition-colors", isDarkMode ? "text-zinc-400 hover:text-emerald-500" : "text-zinc-600 hover:text-emerald-500")}><MapPin className="w-6 h-6" /></a>
+          </div>
+          
+          <div className={cn("text-xs uppercase tracking-widest transition-colors", isDarkMode ? "text-zinc-600" : "text-zinc-400")}>
+            &copy; 2026 جميع الحقوق محفوظة - جامعة دمشق
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  );
+}
