@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Menu, X, ChevronDown, ChevronRight, BookOpen, History, Users, 
-  Home, Box, Cpu, Leaf, Info, ArrowRight, ExternalLink,
-  Award, School, User, Calendar, MapPin, Sun, Moon
+  Menu, X, ChevronDown, ChevronRight, ChevronLeft, BookOpen, History, Users, 
+  Home, Box, Cpu, Leaf, Info, ArrowRight, ArrowLeft, ExternalLink,
+  Award, School, User, Calendar, MapPin, Sun, Moon, GripVertical,
+  PanelRightClose, PanelRightOpen
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -105,31 +106,75 @@ const ImageWithCaption = ({ src, caption, details, isDarkMode }: { src: string, 
 // --- Main App ---
 
 export default function App() {
-  const [activeSection, setActiveSection] = useState('hero');
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [sidebarWidth, setSidebarWidth] = useState(260);
+  const [isResizing, setIsResizing] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme');
-      return saved ? saved === 'dark' : true;
+      return saved ? saved === 'dark' : false;
     }
-    return true;
+    return false;
   });
 
   useEffect(() => {
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
+  const startResizing = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = window.innerWidth - e.clientX;
+      if (newWidth > 150 && newWidth < 600) {
+        setSidebarWidth(newWidth);
+      }
+    };
+    const handleMouseUp = () => setIsResizing(false);
+
+    if (isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
+  const slides = [
+    { id: 'hero', title: 'الرئيسية' },
+    { id: 'intro', title: 'المقدمة' },
+    { id: 'history', title: 'تاريخ التيار' },
+    { id: 'characteristics', title: 'خصائص التيار' },
+    { id: 'pioneers', title: 'الرواد والمدارس' },
+    { id: 'koshino', title: 'منزل كوشينو' },
+    { id: 'olnick', title: 'جناح أولنيك' },
+    { id: 'analysis', title: 'الدراسة التحليلية' },
+    { id: 'future', title: 'المستقبل' },
+    { id: 'vision', title: 'آفاق الرؤية' },
+    { id: 'references', title: 'المراجع' },
+    { id: 'footer', title: 'الخاتمة' },
+  ];
+
+  const nextSlide = () => {
+    if (currentSlide < slides.length - 1) setCurrentSlide(prev => prev + 1);
+  };
+
+  const prevSlide = () => {
+    if (currentSlide > 0) setCurrentSlide(prev => prev - 1);
+  };
 
   const philosophyData = [
-    { name: 'فلسفة الزن', concept: 'الفراغ (Ma)', effect: 'تعزيز التأمل من خلال المساحات المفتوحة' },
-    { name: 'الظاهراتية', concept: 'الحضور المادي', effect: 'التركيز على ملمس المادة وتفاعل الجسد' },
-    { name: 'الأخلاقيات البيئية', concept: 'القصدية', effect: 'تقليل الهدر المادي والاعتماد على الطبيعة' },
-    { name: 'الصدق البنائي', concept: 'الوظيفية الصارمة', effect: 'إظهار الهيكل الإنشائي كجزء من الجمالية' },
+    { name: 'فلسفة الزن (Zen Philosophy)', concept: 'الفراغ (Ma)', effect: 'تعزيز التأمل من خلال المساحات المفتوحة' },
+    { name: 'الظاهراتية (Phenomenology)', concept: 'الحضور المادي', effect: 'التركيز على ملمس المادة وتفاعل الجسد' },
+    { name: 'الأخلاقيات البيئية (Environmental Ethics)', concept: 'القصدية', effect: 'تقليل الهدر المادي والاعتماد على الطبيعة' },
+    { name: 'الصدق البنائي (Structural Honesty)', concept: 'الوظيفية الصارمة', effect: 'إظهار الهيكل الإنشائي كجزء من الجمالية' },
   ];
 
   const timelineData = [
@@ -169,60 +214,91 @@ export default function App() {
 
   return (
     <div className={cn(
-      "min-h-screen font-sans transition-colors duration-500 selection:bg-emerald-500/30 selection:text-emerald-200",
+      "h-screen flex overflow-hidden font-sans transition-colors duration-500 selection:bg-emerald-500/30 selection:text-emerald-200",
       isDarkMode ? "bg-black text-zinc-300" : "bg-zinc-50 text-zinc-800"
     )}>
-      
-      {/* Navigation */}
-      <nav className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-6 py-4 flex items-center justify-between",
-        isScrolled 
-          ? (isDarkMode ? "bg-black/80 backdrop-blur-md border-b border-zinc-800" : "bg-white/80 backdrop-blur-md border-b border-zinc-200")
-          : "bg-transparent"
-      )}>
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-black font-bold">
-            AH
-          </div>
-          <div className="hidden md:block text-right" dir="rtl">
-            <div className={cn("text-xs transition-colors", isDarkMode ? "text-zinc-500" : "text-zinc-400")}>جامعة دمشق</div>
-            <div className={cn("text-sm font-medium transition-colors", isDarkMode ? "text-zinc-100" : "text-zinc-900")}>م. أمير الدين الحمامي</div>
-          </div>
-        </div>
-        
-        <div className="hidden lg:flex items-center gap-8 text-sm font-medium" dir="rtl">
-          {['الرئيسية', 'المقدمة', 'التاريخ', 'الرواد', 'كوشينو', 'أولنيك', 'المستقبل', 'الرؤية'].map((item, i) => (
-            <a key={i} href={`#section-${i}`} className={cn(
-              "transition-colors",
-              isDarkMode ? "hover:text-emerald-500 text-zinc-300" : "hover:text-emerald-600 text-zinc-600"
-            )}>
-              {item}
-            </a>
-          ))}
-        </div>
+      <style dangerouslySetInnerHTML={{ __html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.2); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(16, 185, 129, 0.4); }
+      `}} />
 
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className={cn(
-              "p-2 rounded-lg transition-all duration-300 flex items-center justify-center",
-              isDarkMode ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-zinc-100 text-zinc-500"
-            )}
-            title={isDarkMode ? "الوضع النهاري" : "الوضع الليلي"}
-          >
-            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-          <button className={cn(
-            "p-2 rounded-lg transition-colors",
-            isDarkMode ? "hover:bg-zinc-800 text-zinc-300" : "hover:bg-zinc-100 text-zinc-600"
-          )}>
-            <Menu className="w-6 h-6" />
-          </button>
-        </div>
-      </nav>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col relative overflow-hidden h-full">
+        {/* Navigation */}
+        <nav className={cn(
+          "absolute top-0 left-0 right-0 z-50 transition-all duration-500 px-6 py-4 flex items-center justify-between",
+          currentSlide > 0
+            ? (isDarkMode ? "bg-black/80 backdrop-blur-md border-b border-zinc-800" : "bg-white/80 backdrop-blur-md border-b border-zinc-200")
+            : "bg-transparent"
+        )}>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-black font-bold">
+              AH
+            </div>
+            <div className="hidden md:block text-right" dir="rtl">
+              <div className={cn("text-xs transition-colors", isDarkMode ? "text-zinc-500" : "text-zinc-400")}>جامعة دمشق</div>
+              <div className={cn("text-sm font-medium transition-colors", isDarkMode ? "text-zinc-100" : "text-zinc-900")}>م. أمير الدين الحمامي</div>
+            </div>
+          </div>
+          
+          <div className="hidden lg:flex items-center gap-8 text-sm font-medium" dir="rtl">
+            {['الرئيسية', 'المقدمة', 'التاريخ', 'الخصائص', 'الرواد', 'كوشينو', 'أولنيك', 'التحليل', 'المستقبل', 'الرؤية'].map((item, i) => {
+              const slideIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+              return (
+                <button 
+                  key={i} 
+                  onClick={() => setCurrentSlide(slideIndices[i])} 
+                  className={cn(
+                    "transition-colors",
+                    currentSlide === slideIndices[i]
+                      ? "text-emerald-500"
+                      : (isDarkMode ? "hover:text-emerald-500 text-zinc-300" : "hover:text-emerald-600 text-zinc-600")
+                  )}
+                >
+                  {item}
+                </button>
+              );
+            })}
+          </div>
 
-      {/* Hero Section */}
-      <section id="section-0" className="relative h-screen flex items-center justify-center overflow-hidden">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={cn(
+                "p-2 rounded-lg transition-all duration-300 flex items-center justify-center",
+                isDarkMode ? "hover:bg-zinc-800 text-zinc-400" : "hover:bg-zinc-100 text-zinc-500"
+              )}
+              title={isDarkMode ? "الوضع النهاري" : "الوضع الليلي"}
+            >
+              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                isDarkMode ? "hover:bg-zinc-800 text-zinc-300" : "hover:bg-zinc-100 text-zinc-600"
+              )}
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
+        </nav>
+
+        {/* Slide Content */}
+        <main className="flex-1 relative overflow-hidden pt-20">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.5 }}
+              className="h-full overflow-y-auto custom-scrollbar p-6 md:p-12 scroll-smooth"
+            >
+              {currentSlide === 0 && (
+                <section id="section-0" className="relative h-full flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className={cn(
             "absolute inset-0 z-10 transition-colors duration-500",
@@ -291,10 +367,11 @@ export default function App() {
         >
           <ChevronDown className="w-8 h-8" />
         </motion.div>
-      </section>
+        </section>
+              )}
 
-      {/* Abstract & Intro */}
-      <section id="section-1" className="py-24 container mx-auto px-6">
+              {currentSlide === 1 && (
+                <section id="section-1" className="py-12 container mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           <div className="order-2 lg:order-1" dir="rtl">
             <SectionTitle number="01" subtitle="فلسفة الاختزال والبحث عن الحقيقة المعمارية" isDarkMode={isDarkMode}>المقدمة</SectionTitle>
@@ -379,10 +456,10 @@ export default function App() {
               </thead>
               <tbody className={cn("divide-y transition-colors", isDarkMode ? "divide-zinc-800/50" : "divide-zinc-100")}>
                 {[
-                  { dim: 'فلسفة الزن', concept: 'الفراغ (Ma)', impact: 'تعزيز التأمل من خلال المساحات المفتوحة', source: '1' },
-                  { dim: 'الظاهراتية', concept: 'الحضور المادي (Specific Object)', impact: 'التركيز على ملمس المادة وتفاعل الجسد مع الفراغ', source: '11' },
-                  { dim: 'الأخلاقيات البيئية', concept: 'القصدية (Intentionality)', impact: 'تقليل الهدر المادي والاعتماد على المواد الطبيعية', source: '1' },
-                  { dim: 'الصدق البنائي', concept: 'الوظيفية الصارمة', impact: 'إظهار الهيكل الإنشائي كجزء من الجمالية', source: '6' },
+                  { dim: 'فلسفة الزن (Zen Philosophy)', concept: 'الفراغ (Ma)', impact: 'تعزيز التأمل من خلال المساحات المفتوحة', source: '1' },
+                  { dim: 'الظاهراتية (Phenomenology)', concept: 'الحضور المادي (Specific Object)', impact: 'التركيز على ملمس المادة وتفاعل الجسد مع الفراغ', source: '11' },
+                  { dim: 'الأخلاقيات البيئية (Environmental Ethics)', concept: 'القصدية (Intentionality)', impact: 'تقليل الهدر المادي والاعتماد على المواد الطبيعية', source: '1' },
+                  { dim: 'الصدق البنائي (Structural Honesty)', concept: 'الوظيفية الصارمة', impact: 'إظهار الهيكل الإنشائي كجزء من الجمالية', source: '6' },
                 ].map((row, i) => (
                   <motion.tr 
                     key={i} 
@@ -417,10 +494,12 @@ export default function App() {
           caption="صورة 1: لقطة تجريدية لفناء ياباني تقليدي يوضح مفهوم 'الما' والهدوء الفراغي"
           isDarkMode={isDarkMode}
         />
-      </section>
+        </section>
+              )}
 
-      {/* Chapter 1: History */}
-      <section id="section-2" className={cn("py-24 transition-colors duration-500", isDarkMode ? "bg-zinc-950" : "bg-zinc-100")}>
+              {currentSlide === 2 && (
+                <>
+                  <section id="section-2" className={cn("py-12 transition-colors duration-500 rounded-3xl", isDarkMode ? "bg-zinc-950" : "bg-zinc-100")}>
         <div className="container mx-auto px-6">
           <SectionTitle number="02" subtitle="المسار التاريخي للتبسيط الراديكالي" isDarkMode={isDarkMode}>الفصل الأول: تاريخ التيار ونشأته</SectionTitle>
           
@@ -517,10 +596,10 @@ export default function App() {
             />
           </div>
         </div>
-      </section>
+                  </section>
 
-      {/* Interactive Timeline Chart */}
-      <section className={cn("py-24 transition-colors duration-500", isDarkMode ? "bg-black" : "bg-white")}>
+                  {/* Interactive Timeline Chart */}
+                  <section className={cn("py-12 transition-colors duration-500", isDarkMode ? "bg-black" : "bg-white")}>
         <div className="container mx-auto px-6" dir="rtl">
           <div className="text-center mb-16">
             <h2 className={cn("text-3xl font-light mb-4 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>
@@ -642,11 +721,133 @@ export default function App() {
             </div>
           </div>
         </div>
-      </section>
+                  </section>
+                </>
+              )}
 
-      {/* Chapter 2: Pioneers */}
-      <section id="section-3" className="py-24 container mx-auto px-6">
-        <SectionTitle number="03" subtitle="صناع الفراغ الصامت" isDarkMode={isDarkMode}>الفصل الثاني: رواد التيار ومدارسه</SectionTitle>
+              {currentSlide === 3 && (
+                <section id="section-characteristics" className="py-12 container mx-auto px-6">
+                  <SectionTitle number="03" subtitle="الجوهر المختزل في الفراغ" isDarkMode={isDarkMode}>خصائص التيار المعماري</SectionTitle>
+                  
+                  <div className="mt-16" dir="rtl">
+                    <div className={cn(
+                      "border rounded-[2.5rem] overflow-hidden transition-all duration-500",
+                      isDarkMode ? "bg-zinc-900/20 border-zinc-800/50" : "bg-white border-zinc-200 shadow-sm"
+                    )}>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-right border-collapse">
+                          <thead>
+                            <tr className={isDarkMode ? "bg-zinc-900/50" : "bg-zinc-50"}>
+                              <th className={cn("p-6 font-medium border-b transition-colors", isDarkMode ? "text-white border-zinc-800" : "text-zinc-900 border-zinc-200")}>الخاصية</th>
+                              <th className={cn("p-6 font-medium border-b transition-colors", isDarkMode ? "text-white border-zinc-800" : "text-zinc-900 border-zinc-200")}>الوصف الأكاديمي</th>
+                              <th className={cn("p-6 font-medium border-b transition-colors", isDarkMode ? "text-white border-zinc-800" : "text-zinc-900 border-zinc-200")}>التأثير المعماري</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
+                              { prop: 'النقاء الشكلي', desc: 'استخدام الأشكال الهندسية الأساسية (المكعب، الكرة، الهرم) دون تعقيد.', effect: 'تحقيق الوضوح البصري والهدوء النفسي.' },
+                              { prop: 'الاختزال المادي', desc: 'تقليل تنوع المواد المستخدمة والتركيز على جودة المادة الخام (الخرسانة، الزجاج، الحجر).', effect: 'إبراز الملمس الطبيعي للمادة كعنصر جمالي.' },
+                              { prop: 'الفراغ كعنصر فعال', desc: 'اعتبار الفراغ مادة بناء حقيقية وليس مجرد غياب للكتلة.', effect: 'خلق تجربة مكانية غامرة تركز على الحضور.' },
+                              { prop: 'الصدق الإنشائي', desc: 'إظهار الهيكل الإنشائي للمبنى بوضوح دون تزييف أو تغطية زخرفية.', effect: 'تعزيز الثقة والنزاهة في التصميم.' },
+                              { prop: 'التفاعل مع الضوء', desc: 'استخدام الضوء الطبيعي كمادة تشكيلية أساسية تحدد معالم الفراغ.', effect: 'تحويل الأسطح الصماء إلى لوحات ضوئية متغيرة.' },
+                            ].map((row, idx) => (
+                              <tr key={idx} className="group hover:bg-emerald-500/5 transition-colors">
+                                <td className={cn("p-6 border-b transition-colors font-medium", isDarkMode ? "text-white border-zinc-800/50" : "text-zinc-900 border-zinc-100")}>{row.prop}</td>
+                                <td className={cn("p-6 border-b transition-colors", isDarkMode ? "text-zinc-400 border-zinc-800/50" : "text-zinc-600 border-zinc-100")}>{row.desc}</td>
+                                <td className={cn("p-6 border-b transition-colors", isDarkMode ? "text-zinc-500 border-zinc-800/50" : "text-zinc-500 border-zinc-100")}>{row.effect}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="mt-24 grid lg:grid-cols-2 gap-16 items-center">
+                      <div className="space-y-8">
+                        <h3 className={cn("text-3xl font-light transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>شروط "الحدنوية" في التصميم</h3>
+                        <p className={cn("leading-relaxed transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>
+                          وفقاً للمراجع الأكاديمية (مثل Bertoni, 2002)، يجب أن يستوفي التصميم معايير محددة ليصنف ضمن التيار الحدنوي. هذه المعايير ليست جمالية فقط، بل هي فلسفة متكاملة في التعامل مع المادة والمكان.
+                        </p>
+                        
+                        <div className="space-y-4">
+                          {[
+                            { label: 'الاختزال الشكلي (Formal Reduction)', value: 30, color: '#10b981' },
+                            { label: 'نقاء المواد (Material Purity)', value: 25, color: '#3b82f6' },
+                            { label: 'الفراغ والسيولة (Space & Fluidity)', value: 20, color: '#f59e0b' },
+                            { label: 'غياب الزخرفة (Absence of Ornament)', value: 15, color: '#ef4444' },
+                            { label: 'الصدق الإنشائي (Structural Honesty)', value: 10, color: '#8b5cf6' },
+                          ].map((item, i) => (
+                            <div key={i} className="space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className={isDarkMode ? "text-zinc-300" : "text-zinc-700"}>{item.label}</span>
+                                <span className="text-emerald-500 font-bold">{item.value}%</span>
+                              </div>
+                              <div className="h-2 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  whileInView={{ width: `${item.value}%` }}
+                                  transition={{ duration: 1, delay: i * 0.1 }}
+                                  className="h-full rounded-full"
+                                  style={{ backgroundColor: item.color }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className={cn(
+                        "p-8 rounded-[3rem] border transition-all duration-500",
+                        isDarkMode ? "bg-zinc-900/40 border-zinc-800" : "bg-zinc-50 border-zinc-200"
+                      )}>
+                        <h4 className={cn("text-xl font-light mb-8 text-center transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>توزيع الأهمية النسبية للمعايير</h4>
+                        <div className="h-[350px] w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={[
+                                  { name: 'الاختزال الشكلي', value: 30, fill: '#10b981' },
+                                  { name: 'نقاء المواد', value: 25, fill: '#3b82f6' },
+                                  { name: 'الفراغ والسيولة', value: 20, fill: '#f59e0b' },
+                                  { name: 'غياب الزخرفة', value: 15, fill: '#ef4444' },
+                                  { name: 'الصدق الإنشائي', value: 10, fill: '#8b5cf6' },
+                                ]}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={100}
+                                paddingAngle={5}
+                                dataKey="value"
+                              >
+                                { [0,1,2,3,4].map((entry, index) => (
+                                  <Cell key={`cell-${index}`} />
+                                ))}
+                              </Pie>
+                              <Tooltip 
+                                contentStyle={{ 
+                                  backgroundColor: isDarkMode ? '#18181b' : '#ffffff', 
+                                  border: isDarkMode ? '1px solid #27272a' : '1px solid #e4e4e7', 
+                                  borderRadius: '12px',
+                                  color: isDarkMode ? '#ffffff' : '#000000',
+                                  textAlign: 'right'
+                                }}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                        <p className="text-center text-xs text-zinc-500 mt-4">
+                          * تمثل هذه النسب الثقل النوعي لكل معيار في تقييم "حدنوية" العمل المعماري.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {currentSlide === 4 && (
+                <>
+                  <section id="section-4" className="py-12 container mx-auto px-6">
+        <SectionTitle number="04" subtitle="صناع الفراغ الصامت" isDarkMode={isDarkMode}>الفصل الثاني: رواد التيار ومدارسه</SectionTitle>
         
         <div className="grid md:grid-cols-3 gap-8 mt-16" dir="rtl">
           {/* Mies */}
@@ -730,10 +931,10 @@ export default function App() {
             />
           </div>
         </div>
-      </section>
+                  </section>
 
-      {/* Full width image between sections */}
-      <div className="w-full relative h-[60vh] md:h-[80vh] overflow-hidden">
+                  {/* Full width image between sections */}
+                  <div className="w-full relative h-[60vh] md:h-[80vh] overflow-hidden rounded-3xl my-12">
         <img 
           src="https://lh3.googleusercontent.com/d/1Zgivv6Hl_bSVVirQJS8SKS84b1VS6GO0" 
           className="w-full h-full object-cover"
@@ -750,10 +951,13 @@ export default function App() {
         </div>
       </div>
 
-      {/* Chapter 3: Koshino House */}
-      <section id="section-4" className={cn("py-24 transition-colors duration-500", isDarkMode ? "bg-zinc-950" : "bg-zinc-100")}>
+                </>
+              )}
+
+              {currentSlide === 5 && (
+                <section id="section-5" className={cn("py-12 transition-colors duration-500 rounded-3xl", isDarkMode ? "bg-zinc-950" : "bg-zinc-100")}>
         <div className="container mx-auto px-6">
-          <SectionTitle number="04" subtitle="مختبر أندو للمينيماليزم والارتباط بالطبيعة" isDarkMode={isDarkMode}>الفصل الثالث: دراسة تحليلية لمنزل كوشينو</SectionTitle>
+          <SectionTitle number="05" subtitle="مختبر أندو للمينيماليزم والارتباط بالطبيعة" isDarkMode={isDarkMode}>الفصل الثالث: دراسة تحليلية لمنزل كوشينو</SectionTitle>
           
           <div className="grid lg:grid-cols-2 gap-16 mt-16" dir="rtl">
             <div className="space-y-8">
@@ -889,10 +1093,11 @@ export default function App() {
           </div>
         </div>
       </section>
+              )}
 
-      {/* Chapter 4: Olnick Pavilion */}
-      <section id="section-5" className="py-24 container mx-auto px-6">
-        <SectionTitle number="05" subtitle="أحدث تجليات فكر كامبو بايزا حول الفراغ المطلق" isDarkMode={isDarkMode}>الفصل الرابع: دراسة تحليلية لجناح روبرت أولنيك</SectionTitle>
+              {currentSlide === 6 && (
+                <section id="section-6" className="py-12 container mx-auto px-6">
+        <SectionTitle number="06" subtitle="أحدث تجليات فكر كامبو بايزا حول الفراغ المطلق" isDarkMode={isDarkMode}>الفصل الرابع: دراسة تحليلية لجناح روبرت أولنيك</SectionTitle>
         
         <div className="grid lg:grid-cols-2 gap-16 mt-16 items-center" dir="rtl">
           <div>
@@ -983,9 +1188,10 @@ export default function App() {
           </div>
         </div>
       </section>
+              )}
 
-      {/* Comparative Analysis Section */}
-      <section className={cn("py-24 transition-colors duration-500", isDarkMode ? "bg-black" : "bg-white")}>
+              {currentSlide === 7 && (
+                <section className={cn("py-12 transition-colors duration-500", isDarkMode ? "bg-black" : "bg-white")}>
         <div className="container mx-auto px-6" dir="rtl">
           <div className="text-center mb-16">
             <h2 className={cn("text-4xl font-light mb-4 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>
@@ -1121,11 +1327,12 @@ export default function App() {
           </div>
         </div>
       </section>
+              )}
 
-      {/* Chapter 5: Future */}
-      <section id="section-6" className={cn("py-24 overflow-hidden transition-colors duration-500", isDarkMode ? "bg-zinc-950" : "bg-zinc-100")}>
+              {currentSlide === 8 && (
+                <section id="section-8" className={cn("py-12 overflow-hidden transition-colors duration-500 rounded-3xl", isDarkMode ? "bg-zinc-950" : "bg-zinc-100")}>
         <div className="container mx-auto px-6">
-          <SectionTitle number="06" subtitle="الاستدامة، التكنولوجيا، والابتكار" isDarkMode={isDarkMode}>الفصل الخامس: المينيماليزم المستقبلي</SectionTitle>
+          <SectionTitle number="08" subtitle="الاستدامة، التكنولوجيا، والابتكار" isDarkMode={isDarkMode}>الفصل الخامس: المينيماليزم المستقبلي</SectionTitle>
           
           <div className="mb-16" dir="rtl">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -1181,11 +1388,12 @@ export default function App() {
           </div>
         </div>
       </section>
+              )}
 
-      {/* Chapter 6: Visual Vision (Full Width) */}
-      <section id="section-7" className={cn("transition-colors duration-500", isDarkMode ? "bg-black" : "bg-white")}>
+              {currentSlide === 9 && (
+                <section id="section-9" className={cn("transition-colors duration-500", isDarkMode ? "bg-black" : "bg-white")}>
         <div className="py-24 container mx-auto px-6">
-          <SectionTitle number="07" subtitle="رؤية بصرية للمستقبل الحدنوي" isDarkMode={isDarkMode}>آفاق المستقبل</SectionTitle>
+          <SectionTitle number="09" subtitle="رؤية بصرية للمستقبل الحدنوي" isDarkMode={isDarkMode}>آفاق المستقبل</SectionTitle>
           
           {/* Futuristic Architectural Icons */}
           <div className="mt-24" dir="rtl">
@@ -1333,12 +1541,78 @@ export default function App() {
           ))}
         </div>
       </section>
+              )}
 
-      {/* Footer */}
-      <footer className={cn(
-        "py-24 border-t transition-colors duration-500",
-        isDarkMode ? "border-zinc-900 bg-black" : "border-zinc-200 bg-zinc-50"
-      )}>
+              {currentSlide === 10 && (
+                <section className={cn("py-12 border-t transition-colors duration-500", isDarkMode ? "bg-zinc-950 border-zinc-900" : "bg-white border-zinc-200")}>
+        <div className="container mx-auto px-6" dir="rtl">
+          <SectionTitle number="10" isDarkMode={isDarkMode}>المراجع العلمية</SectionTitle>
+          
+          <div className="grid gap-6 mt-12">
+            {[
+              {
+                title: 'Minimalism in Architecture: A Basis for Resource Conservation and Sustainable Development (2022)',
+                link: 'https://doi.org/10.2298/FUACE221105021K',
+                desc: '(دراسة محكمة حول علاقة الحدنوية بالاستدامة وترشيد الموارد)..2'
+              },
+              {
+                title: 'The Essence of Space: Minimalism in Contemporary Architecture and Interior Design (2025)',
+                link: 'https://www.researchgate.net/publication/391715250_The_Essence_of_Space_Minimalism_in_Contemporary_Architecture_and_Interior_Design',
+                desc: '(بحث حديث يستعرض الأسس الفلسفية للزن والبوهاوس وتأثيرهما على الرفاه النفسي)..1'
+              },
+              {
+                title: 'Minimalism in Contemporary Architecture as One of the Most Usable Aesthetically-Functional Patterns (2016)',
+                link: 'https://www.researchgate.net/publication/323198218_Minimalism_in_contemporary_architecture_as_one_of_the_most_usable_aesthetically-functional_patterns',
+                desc: '(دراسة تحليلية للنماذج المعمارية الحدنوية المعاصرة وتصنيفها الوظيفي)..78'
+              },
+              {
+                title: 'Minimalism in Architecture: Architecture as a Language of its Identity (2012)',
+                link: 'https://www.researchgate.net/publication/269851568_Minimalism_in_architecture_Architecture_as_a_language_of_its_identity',
+                desc: '(بحث يغوص في سيميولوجيا الفراغ الحدنوي وكيفية بناء المعنى من خلال الاختزال)..5'
+              },
+              {
+                title: 'Review of Minimalistic Architecture (2024)',
+                link: 'https://www.researchgate.net/publication/389011938_Review_of_Minimalistic_Architecture',
+                desc: '(مراجعة نقدية شاملة تتناول تاريخ التيار وتحديات ندرة الأراضي والحلول الحدنوية المقترحة)..12'
+              }
+            ].map((ref, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className={cn(
+                  "p-6 rounded-2xl border transition-all duration-500 hover:border-emerald-500/50",
+                  isDarkMode ? "bg-zinc-900/40 border-zinc-800" : "bg-zinc-50 border-zinc-200 shadow-sm"
+                )}
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h4 className={cn("text-lg font-medium mb-2 transition-colors", isDarkMode ? "text-white" : "text-zinc-900")}>{ref.title}</h4>
+                    <p className={cn("text-sm transition-colors", isDarkMode ? "text-zinc-400" : "text-zinc-600")}>{ref.desc}</p>
+                  </div>
+                  <a 
+                    href={ref.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-emerald-500 hover:text-emerald-400 text-sm font-medium transition-colors shrink-0"
+                  >
+                    رابط المصدر <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+              )}
+
+              {currentSlide === 11 && (
+                <footer className={cn(
+                  "py-12 border-t transition-colors duration-500 h-full flex flex-col justify-center",
+                  isDarkMode ? "border-zinc-900 bg-black" : "border-zinc-200 bg-zinc-50"
+                )}>
         <div className="container mx-auto px-6 text-center" dir="rtl">
           <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-black font-bold mx-auto mb-8 text-2xl">
             AH
@@ -1358,8 +1632,103 @@ export default function App() {
             &copy; 2026 جميع الحقوق محفوظة - جامعة دمشق
           </div>
         </div>
-      </footer>
+        </footer>
+              )}
+            </motion.div>
+          </AnimatePresence>
 
+          {/* Navigation Controls */}
+          <div className="absolute bottom-8 left-8 flex gap-4 z-40" dir="rtl">
+            <button 
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+              className={cn(
+                "w-12 h-12 rounded-full flex items-center justify-center transition-all",
+                currentSlide === 0 
+                  ? "opacity-30 cursor-not-allowed" 
+                  : (isDarkMode ? "bg-zinc-800 hover:bg-zinc-700 text-white" : "bg-white hover:bg-zinc-100 text-zinc-900 shadow-lg")
+              )}
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+            <button 
+              onClick={nextSlide}
+              disabled={currentSlide === slides.length - 1}
+              className={cn(
+                "px-6 h-12 rounded-full flex items-center gap-3 transition-all",
+                currentSlide === slides.length - 1
+                  ? "opacity-30 cursor-not-allowed" 
+                  : (isDarkMode ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20")
+              )}
+            >
+              <span className="font-medium">التالي</span>
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          </div>
+        </main>
+      </div>
+
+      {/* Sidebar Index */}
+      <div 
+        style={{ width: isSidebarOpen ? sidebarWidth : 0 }}
+        className={cn(
+          "relative h-full transition-all duration-300 flex flex-col border-l shrink-0",
+          isDarkMode ? "bg-zinc-950 border-zinc-800" : "bg-white border-zinc-200",
+          !isSidebarOpen && "border-none"
+        )}
+      >
+        {/* Resize Handle */}
+        {isSidebarOpen && (
+          <div 
+            onMouseDown={startResizing}
+            className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-emerald-500/50 transition-colors z-50"
+          />
+        )}
+
+        {/* Sidebar Content */}
+        <div className={cn(
+          "flex-1 flex flex-col overflow-hidden",
+          !isSidebarOpen && "hidden"
+        )}>
+          <div className="p-6 flex items-center justify-between border-b border-zinc-800/50" dir="rtl">
+            <h3 className={cn("font-bold", isDarkMode ? "text-white" : "text-zinc-900")}>الفهرس</h3>
+            <button onClick={() => setIsSidebarOpen(false)} className="p-1 hover:bg-zinc-800 rounded">
+              <PanelRightClose className="w-5 h-5" />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar" dir="rtl">
+            {slides.map((slide, index) => (
+              <button
+                key={slide.id}
+                onClick={() => setCurrentSlide(index)}
+                className={cn(
+                  "w-full text-right px-4 py-3 rounded-xl transition-all text-sm flex items-center justify-between group",
+                  currentSlide === index 
+                    ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" 
+                    : (isDarkMode ? "text-zinc-400 hover:bg-zinc-900" : "text-zinc-600 hover:bg-zinc-100")
+                )}
+              >
+                <span>{slide.title}</span>
+                <span className="text-[10px] opacity-50 font-mono">{index + 1}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Toggle Button when closed */}
+        {!isSidebarOpen && (
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className={cn(
+              "absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full border shadow-lg z-50",
+              isDarkMode ? "bg-zinc-900 border-zinc-800 text-zinc-400" : "bg-white border-zinc-200 text-zinc-600"
+            )}
+          >
+            <PanelRightOpen className="w-5 h-5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
